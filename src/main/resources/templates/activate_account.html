@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Activation de votre compte</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f7;font-family:'Segoe UI',Arial,sans-serif;">
+
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f4f7;padding:40px 0;">
+    <tr>
+      <td align="center">
+
+        <!-- Carte principale -->
+        <table width="600" cellpadding="0" cellspacing="0" border="0"
+               style="background-color:#ffffff;border-radius:12px;overflow:hidden;
+                      box-shadow:0 4px 24px rgba(0,0,0,0.08);max-width:600px;width:100%;">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#1a73e8 0%,#0d47a1 100%);
+                       padding:40px 48px;text-align:center;">
+              <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:700;
+                         letter-spacing:-0.5px;">Confirmez votre adresse email</h1>
+            </td>
+          </tr>
+
+          <!-- Corps -->
+          <tr>
+            <td style="padding:40px 48px;">
+
+              <p style="margin:0 0 16px;color:#3c3c43;font-size:16px;line-height:1.6;">
+                Bonjour <strong th:text="${username}">Prénom Nom</strong>,
+              </p>
+              <p style="margin:0 0 32px;color:#3c3c43;font-size:16px;line-height:1.6;">
+                Merci de vous être inscrit(e). Pour activer votre compte,
+                cliquez sur le bouton ci-dessous ou utilisez le code de confirmation.
+              </p>
+
+              <!-- Bouton lien d'activation -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:32px;">
+                <tr>
+                  <td align="center">
+                    <a th:href="${confirmationUrl}"
+                       href="#"
+                       style="display:inline-block;background:linear-gradient(135deg,#1a73e8,#0d47a1);
+                              color:#ffffff;text-decoration:none;font-size:16px;font-weight:600;
+                              padding:14px 40px;border-radius:8px;
+                              letter-spacing:0.3px;">
+                      Activer mon compte
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Séparateur -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
+                <tr>
+                  <td style="border-top:1px solid #e8e8ed;"></td>
+                  <td style="padding:0 16px;color:#8e8e93;font-size:13px;white-space:nowrap;">
+                    ou utilisez ce code
+                  </td>
+                  <td style="border-top:1px solid #e8e8ed;"></td>
+                </tr>
+              </table>
+
+              <!-- Code OTP -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:32px;">
+                <tr>
+                  <td align="center">
+                    <div style="display:inline-block;background-color:#f0f4ff;
+                                border:2px dashed #1a73e8;border-radius:10px;
+                                padding:18px 40px;">
+                      <span style="font-size:36px;font-weight:700;letter-spacing:10px;
+                                   color:#1a73e8;font-family:'Courier New',monospace;"
+                            th:text="${activation_code}">000000</span>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Avertissements -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                     style="background-color:#fff8e1;border-left:4px solid #f59e0b;
+                            border-radius:0 6px 6px 0;margin-bottom:28px;">
+                <tr>
+                  <td style="padding:14px 18px;">
+                    <p style="margin:0;color:#92400e;font-size:13px;line-height:1.6;">
+                      Ce lien et ce code sont valables <strong>15 minutes</strong>.
+                      Si vous n'avez pas créé de compte, ignorez cet email.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Lien texte de secours -->
+              <p style="margin:0;color:#8e8e93;font-size:12px;line-height:1.6;word-break:break-all;">
+                Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br/>
+                <a th:href="${confirmationUrl}" th:text="${confirmationUrl}"
+                   href="#"
+                   style="color:#1a73e8;text-decoration:underline;">lien d'activation</a>
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#f4f4f7;padding:24px 48px;text-align:center;
+                       border-top:1px solid #e8e8ed;">
+              <p style="margin:0;color:#8e8e93;font-size:12px;line-height:1.8;">
+                Cet email a été envoyé automatiquement, merci de ne pas y répondre.<br/>
+                &copy; 2026 Kpokpo. Tous droits réservés.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

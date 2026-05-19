@@ -3,6 +3,7 @@ package com.mykpokpo.Backend.garage;
 import com.mykpokpo.Backend.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,4 +14,12 @@ public interface GarageRepository extends JpaRepository<Garage, Long> {
     boolean existsByOwner(User owner);
 
     List<Garage> findByCityContainingIgnoreCase(String city);
+
+    // ── Admin stats ───────────────────────────────────────────────────────────
+
+    long countByVerifiedTrue();
+
+    long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+
+    List<Garage> findTop5ByOrderByCreatedAtDesc();
 }

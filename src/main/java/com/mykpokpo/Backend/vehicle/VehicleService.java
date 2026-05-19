@@ -26,6 +26,8 @@ public class VehicleService {
                 .vin(request.getVin())
                 .insuranceExpiry(request.getInsuranceExpiry())
                 .technicalInspectionExpiry(request.getTechnicalInspectionExpiry())
+                .nextServiceDate(request.getNextServiceDate())
+                .nextServiceMileage(request.getNextServiceMileage())
                 .build();
 
         return VehicleResponse.from(vehicleRepository.save(vehicle));
@@ -55,6 +57,8 @@ public class VehicleService {
         vehicle.setVin(request.getVin());
         vehicle.setInsuranceExpiry(request.getInsuranceExpiry());
         vehicle.setTechnicalInspectionExpiry(request.getTechnicalInspectionExpiry());
+        vehicle.setNextServiceDate(request.getNextServiceDate());
+        vehicle.setNextServiceMileage(request.getNextServiceMileage());
 
         return VehicleResponse.from(vehicleRepository.save(vehicle));
     }

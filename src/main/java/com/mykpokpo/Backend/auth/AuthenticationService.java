@@ -2,6 +2,8 @@ package com.mykpokpo.Backend.auth;
 
 import com.mykpokpo.Backend.email.EmailService;
 import com.mykpokpo.Backend.email.EmailTemplateName;
+import com.mykpokpo.Backend.garage.Garage;
+import com.mykpokpo.Backend.garage.GarageRepository;
 import com.mykpokpo.Backend.role.RoleRepository;
 import com.mykpokpo.Backend.security.JwtService;
 import com.mykpokpo.Backend.token.Token;
@@ -34,6 +36,7 @@ public class AuthenticationService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final GarageRepository garageRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -50,9 +53,38 @@ public class AuthenticationService {
     //  INSCRIPTION
     // ═══════════════════════════════════════════════════════════════
 
+    @Transactional
     public void register(RegistrationRequest request) throws MessagingException {
-        var userRole = roleRepository.findByRoleName("USER")
-                .orElseThrow(() -> new RuntimeException("Rôle USER introuvable en BDD"));
+        var existingUser = userRepository.findByEmail(request.getEmail());
+        if (existingUser.isPresent()) {
+            User user = existingUser.get();
+            if (user.isEnabled()) {
+                throw new IllegalArgumentException("Un compte actif existe déjà avec cet email");
+            }
+            // Compte non activé : on ne tolère le renvoi de code QUE si le rôle demandé
+            // est le même. Tout changement de rôle/nom/password sur un compte existant
+            // doit être un échec explicite — sinon n'importe qui connaissant l'email d'un
+            // user non confirmé pourrait écraser ses tokens d'activation.
+            boolean sameRole = user.getRoles().stream()
+                    .anyMatch(r -> r.getRoleName().equalsIgnoreCase(request.getRole()));
+            if (!sameRole) {
+                throw new IllegalArgumentException(
+                        "Un compte non activé existe déjà avec cet email pour un autre type d'utilisateur. " +
+                        "Confirmez-le ou utilisez un autre email.");
+            }
+            // Même rôle, compte toujours en attente : renouveler le code d'activation
+            tokenRepository.deleteAllByUserAndTokenType(user, TokenType.ACTIVATION);
+            sendConfirmationEmail(user);
+            return;
+        }
+
+        if ("GARAGISTE".equals(request.getRole()) && request.getGarage() == null) {
+            throw new IllegalArgumentException(
+                    "Les informations du garage sont obligatoires pour l'inscription en tant que professionnel");
+        }
+
+        var userRole = roleRepository.findByRoleName(request.getRole())
+                .orElseThrow(() -> new RuntimeException("Rôle introuvable en BDD : " + request.getRole()));
 
         var user = User.builder()
                 .firstName(request.getFirstname())
@@ -65,6 +97,36 @@ public class AuthenticationService {
                 .build();
 
         userRepository.save(user);
+
+        if ("GARAGISTE".equals(request.getRole())) {
+            RegistrationRequest.GarageInfo g = request.getGarage();
+            Garage garage = Garage.builder()
+                    .owner(user)
+                    .name(g.getName())
+                    .city(g.getCity())
+                    .address(g.getAddress())
+                    .phone(g.getPhone())
+                    .email(g.getEmail())
+                    .country(g.getCountry() != null ? g.getCountry() : "Togo")
+                    .description(g.getDescription())
+                    .verified(false)
+                    .build();
+            garageRepository.save(garage);
+        }
+
+        sendConfirmationEmail(user);
+    }
+
+    @Transactional
+    public void resendConfirmation(String email) throws MessagingException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Aucun compte trouvé avec cet email"));
+
+        if (user.isEnabled()) {
+            throw new IllegalArgumentException("Ce compte est déjà activé");
+        }
+
+        tokenRepository.deleteAllByUserAndTokenType(user, TokenType.ACTIVATION);
         sendConfirmationEmail(user);
     }
 
@@ -98,7 +160,8 @@ public class AuthenticationService {
      *  - un code 6 chiffres  → vérifié via Token.token
      *  - un UUID (lien email) → vérifié via Token.linkToken
      */
-    @Transactional
+    // dontRollbackOn : si le token est expiré, on sauvegarde le nouveau token AVANT de lancer l'exception
+    @Transactional(dontRollbackOn = IllegalArgumentException.class)
     public void confirmAccount(String tokenValue) throws MessagingException {
         Token token = tokenRepository.findByLinkToken(tokenValue)
                 .or(() -> tokenRepository.findByToken(tokenValue))

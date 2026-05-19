@@ -16,4 +16,6 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     List<Vehicle> findByInsuranceExpiry(LocalDate date);
 
     List<Vehicle> findByTechnicalInspectionExpiry(LocalDate date);
+
+    List<Vehicle> findByNextServiceDate(LocalDate date);
 }

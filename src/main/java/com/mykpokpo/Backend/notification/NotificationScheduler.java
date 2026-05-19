@@ -22,8 +22,9 @@ public class NotificationScheduler {
     private final SparePartRepository sparePartRepository;
 
     /**
-     * Chaque jour à 8h00 : vérifie les assurances et contrôles techniques
-     * qui expirent dans exactement 30 ou 7 jours.
+     * Chaque jour à 8h00 : vérifie les échéances véhicule (assurance, CT, entretien)
+     * qui surviennent dans exactement 30 ou 7 jours, plus le kilométrage atteint pour
+     * le prochain entretien.
      */
     @Scheduled(cron = "0 0 8 * * *")
     @Transactional
@@ -33,6 +34,9 @@ public class NotificationScheduler {
         checkInsuranceExpiry(today.plusDays(7), 7);
         checkTechnicalInspectionExpiry(today.plusDays(30), 30);
         checkTechnicalInspectionExpiry(today.plusDays(7), 7);
+        checkNextServiceDate(today.plusDays(30), 30);
+        checkNextServiceDate(today.plusDays(7), 7);
+        checkNextServiceMileage();
     }
 
     /**
@@ -89,6 +93,54 @@ public class NotificationScheduler {
                     "Le contrôle technique de votre véhicule " + v.getBrand() + " " + v.getModel()
                             + " (" + v.getLicensePlate() + ") expire dans " + daysLeft + " jour(s).",
                     "maintenance_reminder",
+                    v.getId(),
+                    cutoff
+            );
+        }
+    }
+
+    /**
+     * Rappel "vidange / entretien à prévoir" basé sur la date saisie par le client.
+     */
+    private void checkNextServiceDate(LocalDate serviceDate, int daysLeft) {
+        List<Vehicle> vehicles = vehicleRepository.findByNextServiceDate(serviceDate);
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(2);
+
+        for (Vehicle v : vehicles) {
+            notificationService.pushIfNotSentSince(
+                    v.getOwner(),
+                    "Entretien à prévoir",
+                    "Pensez à programmer l'entretien de votre véhicule "
+                            + v.getBrand() + " " + v.getModel()
+                            + " (" + v.getLicensePlate() + ") — prévu dans " + daysLeft + " jour(s).",
+                    "service_reminder",
+                    v.getId(),
+                    cutoff
+            );
+        }
+    }
+
+    /**
+     * Si le kilométrage actuel a atteint ou dépassé le kilométrage cible saisi
+     * pour le prochain entretien — notification une fois par semaine max.
+     */
+    private void checkNextServiceMileage() {
+        List<Vehicle> vehicles = vehicleRepository.findAll().stream()
+                .filter(v -> v.getNextServiceMileage() != null
+                        && v.getCurrentMileage() != null
+                        && v.getCurrentMileage() >= v.getNextServiceMileage())
+                .toList();
+
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(7);
+        for (Vehicle v : vehicles) {
+            notificationService.pushIfNotSentSince(
+                    v.getOwner(),
+                    "Kilométrage d'entretien atteint",
+                    "Votre " + v.getBrand() + " " + v.getModel()
+                            + " (" + v.getLicensePlate() + ") a atteint " + v.getCurrentMileage()
+                            + " km. Un entretien est recommandé (seuil défini : "
+                            + v.getNextServiceMileage() + " km).",
+                    "service_reminder",
                     v.getId(),
                     cutoff
             );

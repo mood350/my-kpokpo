@@ -51,4 +51,15 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
            "GROUP BY l.description " +
            "ORDER BY COUNT(l) DESC")
     List<Object[]> findTopServicesByGarage(@Param("garage") Garage garage);
+
+    // ── Admin stats (plateforme entière) ─────────────────────────────────────
+
+    @Query("SELECT COALESCE(SUM(i.totalTTC), 0) FROM Invoice i " +
+           "WHERE i.status = 'PAID' AND i.issueDate BETWEEN :start AND :end")
+    java.math.BigDecimal sumPlatformRevenueTTCByPeriod(
+            @Param("start") LocalDate start,
+            @Param("end")   LocalDate end);
+
+    @Query("SELECT COALESCE(SUM(i.totalTTC), 0) FROM Invoice i WHERE i.status = 'PAID'")
+    java.math.BigDecimal sumTotalPlatformRevenueTTC();
 }

@@ -57,6 +57,12 @@ public interface InterventionRepository extends JpaRepository<Intervention, Long
             @Param("start") LocalDate start,
             @Param("end") LocalDate end);
 
+    List<Intervention> findTop5ByGarageOrderByInterventionDateDesc(Garage garage);
+
+    // ── Admin stats (plateforme entière) ─────────────────────────────────────
+
+    long countByInterventionDateBetween(LocalDate start, LocalDate end);
+
     @Query("SELECT DISTINCT i.vehicle FROM Intervention i " +
            "WHERE i.garage = :garage " +
            "AND ((i.vehicle.insuranceExpiry IS NOT NULL AND i.vehicle.insuranceExpiry BETWEEN :today AND :limit) " +

@@ -7,4 +7,5 @@ import java.util.Optional;
 public interface TokenRepository extends JpaRepository<Token, Long> {
     Optional<Token> findByToken(String token);
     Optional<Token> findByLinkToken(String linkToken);
+    void deleteAllByUserAndTokenType(com.mykpokpo.Backend.user.User user, TokenType tokenType);
 }

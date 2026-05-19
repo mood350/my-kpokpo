@@ -45,6 +45,12 @@ public class AuthController {
         return ResponseEntity.ok(authService.authenticate(request, ip, userAgent));
     }
 
+    @PostMapping("/resend-confirmation")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void resendConfirmation(@RequestParam String email) throws MessagingException {
+        authService.resendConfirmation(email);
+    }
+
     @PostMapping("/forgot-password")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void forgotPassword(@RequestParam String email) throws MessagingException {

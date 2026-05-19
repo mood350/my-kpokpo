@@ -41,6 +41,10 @@ public class User extends Listeners implements Principal, UserDetails {
     private String lastKnownIp;
     private String lastKnownUserAgent;
 
+    /** Expo push token de l'appareil mobile (un seul appareil pour le MVP). */
+    @Column(length = 200)
+    private String pushToken;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",

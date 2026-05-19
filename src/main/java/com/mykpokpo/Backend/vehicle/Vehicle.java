@@ -48,4 +48,10 @@ public class Vehicle extends Listeners {
     private LocalDate insuranceExpiry;
 
     private LocalDate technicalInspectionExpiry;
+
+    /** Prochaine date prévue d'entretien (vidange, révision). Saisi par le client. */
+    private LocalDate nextServiceDate;
+
+    /** Kilométrage prévu pour le prochain entretien. Saisi par le client. */
+    private Integer nextServiceMileage;
 }

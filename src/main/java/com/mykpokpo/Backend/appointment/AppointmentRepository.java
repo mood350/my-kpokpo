@@ -13,4 +13,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findAllByGarageOrderByRequestedDateDesc(Garage garage);
 
     long countByGarageAndStatus(Garage garage, AppointmentStatus status);
+
+    List<Appointment> findAllByGarageAndRequestedDateBetweenOrderByRequestedDateAsc(
+            Garage garage, java.time.LocalDateTime start, java.time.LocalDateTime end);
 }

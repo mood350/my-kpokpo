@@ -7,13 +7,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final ExpoPushService        expoPushService;
 
     // ── API endpoints ─────────────────────────────────────────────────────────
 
@@ -54,6 +57,11 @@ public class NotificationService {
                 .channel(channel)
                 .build();
         notificationRepository.save(n);
+
+        // Push système (best-effort, async, ne bloque jamais).
+        Map<String, Object> data = new HashMap<>();
+        if (channel != null) data.put("channel", channel);
+        expoPushService.send(recipient, title, message, data);
     }
 
     /**
@@ -66,15 +74,21 @@ public class NotificationService {
         boolean alreadySent = notificationRepository
                 .existsByRecipientAndChannelAndReferenceIdAndCreatedAtAfter(
                         recipient, channel, referenceId, notBefore);
-        if (!alreadySent) {
-            Notification n = Notification.builder()
-                    .recipient(recipient)
-                    .title(title)
-                    .message(message)
-                    .channel(channel)
-                    .referenceId(referenceId)
-                    .build();
-            notificationRepository.save(n);
-        }
+        if (alreadySent) return;
+
+        Notification n = Notification.builder()
+                .recipient(recipient)
+                .title(title)
+                .message(message)
+                .channel(channel)
+                .referenceId(referenceId)
+                .build();
+        notificationRepository.save(n);
+
+        // Push système (best-effort, async, ne bloque jamais).
+        Map<String, Object> data = new HashMap<>();
+        if (channel != null)         data.put("channel", channel);
+        if (referenceId != null)     data.put("referenceId", referenceId);
+        expoPushService.send(recipient, title, message, data);
     }
 }

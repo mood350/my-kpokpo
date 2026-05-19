@@ -14,6 +14,8 @@ public record VehicleResponse(
         String vin,
         LocalDate insuranceExpiry,
         LocalDate technicalInspectionExpiry,
+        LocalDate nextServiceDate,
+        Integer nextServiceMileage,
         LocalDateTime createdAt
 ) {
     public static VehicleResponse from(Vehicle v) {
@@ -28,6 +30,8 @@ public record VehicleResponse(
                 v.getVin(),
                 v.getInsuranceExpiry(),
                 v.getTechnicalInspectionExpiry(),
+                v.getNextServiceDate(),
+                v.getNextServiceMileage(),
                 v.getCreatedAt()
         );
     }

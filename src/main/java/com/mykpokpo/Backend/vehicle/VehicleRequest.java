@@ -37,4 +37,9 @@ public class VehicleRequest {
     private LocalDate insuranceExpiry;
 
     private LocalDate technicalInspectionExpiry;
+
+    private LocalDate nextServiceDate;
+
+    @Min(value = 0, message = "Le kilométrage ne peut pas être négatif")
+    private Integer nextServiceMileage;
 }

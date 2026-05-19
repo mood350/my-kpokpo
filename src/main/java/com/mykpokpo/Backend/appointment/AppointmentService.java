@@ -39,7 +39,18 @@ public class AppointmentService {
                 .clientNotes(request.getClientNotes())
                 .build();
 
-        return AppointmentResponse.from(appointmentRepository.save(appointment));
+        AppointmentResponse response = AppointmentResponse.from(appointmentRepository.save(appointment));
+        // Notifie le propriétaire du garage de la nouvelle demande
+        notificationService.push(
+                garage.getOwner(),
+                "Nouvelle demande de rendez-vous",
+                client.fullName() + " demande un rendez-vous le "
+                        + appointment.getRequestedDate() + " pour son "
+                        + vehicle.getBrand() + " " + vehicle.getModel()
+                        + " (" + vehicle.getLicensePlate() + ").",
+                "appointment"
+        );
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -119,7 +130,18 @@ public class AppointmentService {
         appointment.setConfirmedDate(request.getConfirmedDate());
         if (request.getGarageNotes() != null) appointment.setGarageNotes(request.getGarageNotes());
 
-        return AppointmentResponse.from(appointmentRepository.save(appointment));
+        AppointmentResponse response = AppointmentResponse.from(appointmentRepository.save(appointment));
+        notificationService.push(
+                appointment.getClient(),
+                "Rendez-vous reprogrammé",
+                "Le garage « " + appointment.getGarage().getName()
+                        + " » a proposé un nouveau créneau le "
+                        + appointment.getConfirmedDate() + "."
+                        + (appointment.getGarageNotes() != null
+                            ? " Note : " + appointment.getGarageNotes() : ""),
+                "appointment"
+        );
+        return response;
     }
 
     @Transactional
@@ -135,7 +157,17 @@ public class AppointmentService {
         }
 
         appointment.setStatus(AppointmentStatus.CANCELLED);
-        return AppointmentResponse.from(appointmentRepository.save(appointment));
+        AppointmentResponse response = AppointmentResponse.from(appointmentRepository.save(appointment));
+        // Notifie le propriétaire du garage que le client a annulé
+        notificationService.push(
+                appointment.getGarage().getOwner(),
+                "Rendez-vous annulé",
+                "Le client " + appointment.getClient().fullName()
+                        + " a annulé son rendez-vous du "
+                        + appointment.getRequestedDate() + ".",
+                "appointment"
+        );
+        return response;
     }
 
     @Transactional
@@ -144,7 +176,16 @@ public class AppointmentService {
         requireStatus(appointment, AppointmentStatus.CONFIRMED);
 
         appointment.setStatus(AppointmentStatus.COMPLETED);
-        return AppointmentResponse.from(appointmentRepository.save(appointment));
+        AppointmentResponse response = AppointmentResponse.from(appointmentRepository.save(appointment));
+        notificationService.push(
+                appointment.getClient(),
+                "Intervention terminée",
+                "L'intervention sur votre " + appointment.getVehicle().getBrand()
+                        + " " + appointment.getVehicle().getModel()
+                        + " est terminée au garage « " + appointment.getGarage().getName() + " ».",
+                "appointment"
+        );
+        return response;
     }
 
     // ── Utilitaires privés ────────────────────────────────────────────────────

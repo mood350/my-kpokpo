@@ -1,26 +1,355 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ─────────────────────────────────────────────────────────────────────────────
+   Dark mode — class strategy (.dark posé sur <html> par next-themes)
+   ───────────────────────────────────────────────────────────────────────────── */
+@custom-variant dark (&:where(.dark, .dark *));
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   Tailwind design tokens (fonts uniquement — couleurs via CSS vars directement)
+   ───────────────────────────────────────────────────────────────────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-fraunces);
+  --font-body:    var(--font-dm-sans);
+  --font-mono:    ui-monospace, "Cascadia Code", "Source Code Pro", Menlo,
+                  Consolas, "DejaVu Sans Mono", monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─────────────────────────────────────────────────────────────────────────────
+   Tokens — Light mode (défaut :root)
+   ───────────────────────────────────────────────────────────────────────────── */
+:root {
+  --bg-base:        #FAFAF8;
+  --bg-surface:     #FFFFFF;
+  --bg-elevated:    #F4F3F0;
+  --border:         #E8E6E1;
+  --accent:         #A8823E;
+  --accent-muted:   rgba(168, 130, 62, 0.10);
+  --accent-hover:   rgba(168, 130, 62, 0.18);
+  --text-primary:   #1A1A1A;
+  --text-secondary: #6B6B6B;
+  --text-muted:     #ADADAD;
+  --success:        #2D7A5A;
+  --warning:        #B87B1A;
+  --danger:         #B83035;
+  --success-muted:  rgba(45, 122, 90, 0.10);
+  --warning-muted:  rgba(184, 123, 26, 0.10);
+  --danger-muted:   rgba(184, 48, 53, 0.10);
+
+  --radius-card:    10px;
+  --radius-badge:   6px;
+  --sidebar-width:  240px;
+  --header-height:  64px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Tokens — Dark mode (.dark sur <html>)
+   ───────────────────────────────────────────────────────────────────────────── */
+.dark {
+  --bg-base:        #0F0F0F;
+  --bg-surface:     #161616;
+  --bg-elevated:    #1E1E1E;
+  --border:         #2A2A2A;
+  --accent:         #C8A96E;
+  --accent-muted:   rgba(200, 169, 110, 0.12);
+  --accent-hover:   rgba(200, 169, 110, 0.20);
+  --text-primary:   #F2F2F2;
+  --text-secondary: #7A7A7A;
+  --text-muted:     #4A4A4A;
+  --success:        #3D9970;
+  --warning:        #E8A838;
+  --danger:         #D64045;
+  --success-muted:  rgba(61, 153, 112, 0.12);
+  --warning-muted:  rgba(232, 168, 56, 0.12);
+  --danger-muted:   rgba(214, 64, 69, 0.12);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Reset & base
+   ───────────────────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body, "DM Sans", sans-serif);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  height: 100%;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Typographie utilitaires
+   ───────────────────────────────────────────────────────────────────────────── */
+.font-display {
+  font-family: var(--font-display, "Fraunces", serif);
+}
+
+.font-body {
+  font-family: var(--font-body, "DM Sans", sans-serif);
+}
+
+/* Chiffres tabulaires alignés (KPI, métriques) */
+.nums {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* Label uppercase petite taille */
+.label-caps {
+  font-family: var(--font-body, "DM Sans", sans-serif);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Composants réutilisables
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Carte de base */
+.card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 24px;
+  transition: border-color 150ms ease, transform 200ms ease;
+}
+
+.card-hover:hover {
+  border-color: var(--accent-muted);
+  transform: translateY(-2px);
+}
+
+/* Badge statut (base — déclinaisons dans StatusBadge.tsx) */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: var(--radius-badge);
+  padding: 2px 8px;
+  font-family: var(--font-body, "DM Sans", sans-serif);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.badge-pending {
+  background-color: var(--warning-muted);
+  color: var(--warning);
+}
+
+.badge-confirmed {
+  background-color: var(--accent-muted);
+  color: var(--accent);
+}
+
+.badge-completed {
+  background-color: var(--success-muted);
+  color: var(--success);
+}
+
+.badge-rejected {
+  background-color: var(--danger-muted);
+  color: var(--danger);
+}
+
+.badge-in_progress {
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.badge-on_hold {
+  background-color: var(--warning-muted);
+  color: var(--warning);
+}
+
+.badge-rescheduled {
+  background-color: var(--accent-muted);
+  color: var(--accent);
+}
+
+.badge-cancelled {
+  background-color: var(--bg-elevated);
+  color: var(--text-muted);
+}
+
+/* Bouton accent */
+.btn-accent {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--accent-muted);
+  color: var(--accent);
+  border: 1px solid transparent;
+  border-radius: var(--radius-badge);
+  padding: 6px 12px;
+  font-family: var(--font-body, "DM Sans", sans-serif);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+  white-space: nowrap;
+}
+
+.btn-accent:hover {
+  background-color: var(--accent-hover);
+}
+
+/* Bouton ghost */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-badge);
+  padding: 6px 12px;
+  font-family: var(--font-body, "DM Sans", sans-serif);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+  white-space: nowrap;
+}
+
+.btn-ghost:hover {
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: transparent;
+}
+
+/* Icône dans cercle accent */
+.icon-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--accent-muted);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Scrollbar (Webkit)
+   ───────────────────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Sélection de texte
+   ───────────────────────────────────────────────────────────────────────────── */
+::selection {
+  background-color: var(--accent-muted);
+  color: var(--accent);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Focus ring accessible
+   ───────────────────────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Séparateur
+   ───────────────────────────────────────────────────────────────────────────── */
+.divider {
+  width: 100%;
+  height: 1px;
+  background-color: var(--border);
+}
+
+.divider-vertical {
+  width: 1px;
+  height: 100%;
+  background-color: var(--border);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Overlay / backdrop
+   ───────────────────────────────────────────────────────────────────────────── */
+.overlay {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Recharts — surcharge globale des couleurs de texte
+   ───────────────────────────────────────────────────────────────────────────── */
+.recharts-cartesian-axis-tick-value {
+  fill: var(--text-muted) !important;
+  font-family: var(--font-body, "DM Sans", sans-serif) !important;
+  font-size: 11px !important;
+}
+
+.recharts-cartesian-grid-horizontal line {
+  stroke: var(--border) !important;
+  stroke-dasharray: 4 4 !important;
+}
+
+.recharts-cartesian-grid-vertical line {
+  display: none !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Animations
+   ───────────────────────────────────────────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 200ms ease forwards;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 1.8s ease-in-out infinite;
 }
